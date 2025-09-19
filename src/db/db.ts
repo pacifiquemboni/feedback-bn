@@ -9,7 +9,7 @@ config();
 export const AppDataSource = new DataSource({
   type: "postgres",
   url: process.env.DATABASE_URL,
-  synchronize: true,
+  synchronize: false,
   logging: false,
   entities: [Feedback, Comment, Upvote],
  
