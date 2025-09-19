@@ -34,15 +34,30 @@ export class FeedbackController {
     }
 
     static async getAllFeedbacks(req: Request, res: Response) {
-        // Implementation for retrieving all feedbacks with comments
-        try {
-            const feedbackRepository = AppDataSource.getRepository(Feedback);
-            const feedbacks = await feedbackRepository.find({ relations: ["comment"] });
-            res.status(200).json(feedbacks);
-        } catch (error) {
-            res.status(500).json({ message: "Error retrieving feedbacks", error });
-        }
+  try {
+    const feedbackRepository = AppDataSource.getRepository(Feedback);
+    
+    // Get search query from request (e.g., ?search=dark)
+    const search = (req.query.search as string)?.trim();
+
+    // Build query
+    const query = feedbackRepository.createQueryBuilder("feedback")
+      .leftJoinAndSelect("feedback.comment", "comment")
+      .orderBy("feedback.upvotes", "DESC");
+
+    if (search) {
+      query.where("feedback.title ILIKE :search OR feedback.description ILIKE :search", {
+        search: `%${search}%`,
+      });
     }
+
+    const feedbacks = await query.getMany();
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving feedbacks", error });
+  }
+}
+
     static async updateFeedback(req: Request, res: Response) {
         // Implementation for updating feedback
         try {
